@@ -1,0 +1,6 @@
+id=dvfs_patch
+name=DVFS Bypass Patch for Galaxy A04
+version=1.0
+versionCode=1
+author=Benly
+description=Bypasses missing framework-res for DVFS patching
