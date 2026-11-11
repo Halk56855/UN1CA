@@ -25,38 +25,13 @@ jobs:
           CODE=0
           while IFS= read -r f; do
             shellcheck -e SC1090,SC1091 -s bash "$f" || CODE=1
-          done < <(find platform scripts target unica -name "*.sh" -not -name "*ssi.sh" -not -name "config.sh" -not -name "sff.sh")
+          done < <(find platform scripts target/a04 unica -name "*.sh" -not -name "*ssi.sh" -not -name "config.sh" -not -name "sff.sh")
           exit $CODE
 
-  generate-matrix:
-    name: Generate matrix
+  build:
+    name: Build (a04)
     needs: shellcheck
     runs-on: ubuntu-24.04
-
-    outputs:
-      matrix: ${{ steps.generate-matrix.outputs.matrix }}
-
-    steps:
-      - name: Checkout repo
-        uses: actions/checkout@v7
-
-      - name: Generate CI matrix
-        id: generate-matrix
-        run: |
-          matrix="$(find target -mindepth 1 -maxdepth 1 -type d -printf '%f\n' \
-            | sort | jq -R -s -c 'split("\n") | map(select(length > 0))')"
-          echo "$matrix"
-          echo "matrix=$matrix" >> "$GITHUB_OUTPUT"
-
-  build:
-    name: Build
-    needs: [shellcheck, generate-matrix]
-    runs-on: ubuntu-24.04
-
-    strategy:
-      fail-fast: false
-      matrix:
-        target: ${{ fromJSON(needs.generate-matrix.outputs.matrix) }}
 
     steps:
       - name: Checkout repo
@@ -102,7 +77,7 @@ jobs:
 
       - name: Generate build config
         run: |
-          source ./buildenv.sh ${{ matrix.target }}
+          source ./buildenv.sh a04
           {
             echo "DEBUG=$DEBUG"
             echo "SRC_DIR=$SRC_DIR"
