@@ -1,0 +1,40 @@
+name: Copy (Clone) Folder from External Repo
+
+on:
+  workflow_dispatch: # للتشغيل اليدوي
+
+jobs:
+  copy-folder:
+    runs-on: ubuntu-latest
+    steps:
+      # 1. سحب مستودعك الحالي
+      - name: Checkout Current Repository
+        uses: actions/checkout@v4
+
+      # 2. سحب المستودع الخارجي بالالتزام (Commit) المحدد في مجلد مؤقت
+      - name: Checkout External ROM Repo
+        uses: actions/checkout@v4
+        with:
+          repository: Halk56855/BenlyROM-A04
+          ref: f7963529f1316d7a06a257a8ab15411e1ab265da
+          path: temp-external-repo
+
+      # 3. نسخ المجلد (بدلاً من نقله) إلى المسار المستهدف في مستودعك
+      - name: Copy Folder to target/a04
+        run: |
+          mkdir -p target/a04
+          # مسح المحتوى القديم في المسار المستهدف إذا أردت تحديثه بالكامل بنسخة مطابقة
+          rm -rf target/a04/*
+          # نسخ محتويات المجلد الخارجي إلى مسارك
+          cp -r temp-external-repo/target/a04/. target/a04/
+          # حذف المجلد المؤقت
+          rm -rf temp-external-repo
+
+      # 4. حفظ التغييرات ودفعها تلقائياً إلى المستودع
+      - name: Commit and Push Changes
+        run: |
+          git config --global user.name "GitHub Actions Bot"
+          git config --global user.email "actions@github.com"
+          git add target/a04
+          git diff --staged --quiet || git commit -m "Sync/Copy target/a04 from BenlyROM-A04 at commit f796352"
+          git push
